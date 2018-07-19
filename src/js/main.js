@@ -1,3 +1,15 @@
+// import './jquery-3.3.1.slim.min.js';
+// import './popper.min.js';
+
+// import 'jquery';
+// import 'popper';
+// import 'bootstrap';
+//var jquery = require('jquery');
+//var popper = require('popper');
+//var bootstrap = require('bootstrap');
+
+require ('../css/style.css');
+
 var gitCmd = document.getElementById("gitcmd");
 var recastAPIurl = 'https://api.recast.ai/v2/request?text=';
 var githubCreateRepoAPIurl = 'https://api.github.com/user/repos';
@@ -8,8 +20,16 @@ var submitIssueCommentUrl = 'https://api.github.com/repos/anokha777/';
 var repoName = '';
 
 
-function showNone() {
-    document.getElementById('gitcmd').focus();
+
+gitCmd.addEventListener("keydown", function (e) {
+    if (e.keyCode === 13) {  //checks whether the pressed key is "Enter"
+        callRecastAI(e);
+    }
+});
+
+
+window.onload = function showNone ()  {
+     document.getElementById('gitcmd').focus();
     document.getElementById("success_msg").style.display = 'none';
     document.getElementById("fail_msg").style.display = 'none';
     document.getElementById("lastIssueComment").style.display = 'none';
@@ -17,15 +37,7 @@ function showNone() {
     document.getElementById("createGithubIssue").style.display = 'none';
     document.getElementById("displayAllIssues").style.display = 'none';
     
-    
-
 }
-
-gitCmd.addEventListener("keydown", function (e) {
-    if (e.keyCode === 13) {  //checks whether the pressed key is "Enter"
-        callRecastAI(e);
-    }
-});
 
 // Calling Recast AI to get intent of user
 function callRecastAI(e) {
@@ -44,11 +56,6 @@ function callRecastAI(e) {
         }
     }).then((response) => {
         response.json().then(response => {
-            // document.getElementById("success_msg").style.display = 'none';
-            // document.getElementById("createGithubRepo").style.display = 'none';
-            // document.getElementById("createGithubIssue").style.display = 'none';
-            
-
             // If responce from recast.ai is to create new github repository.
             if (response.results.intents[0].slug == 'create-git-repo') {
                 repoName = response.results.entities.git_repo[0].value;
@@ -58,8 +65,6 @@ function callRecastAI(e) {
                 document.getElementById("commandComment").focus();
             }// If responce from recast.ai is to create new github issue.
             else if (response.results.intents[0].slug == 'create-git-issue') {
-                // repoName = response.results.entities.git_repo[0].value;
-                // console.log(repoName);
                 document.getElementById("createGithubIssue").style.display = 'block';
                 document.getElementById("issueRepoName").value = response.results.entities.git_repo[0].value;
                 document.getElementById("issueName").value = response.results.entities.git_issue[0].value;
@@ -71,11 +76,6 @@ function callRecastAI(e) {
             else if (response.results.intents[0].slug == 'add-git-coleborator') {
                 addGitCollaborator(response.results.entities.git_repo[0].value, response.results.entities.git_collaborator[0].value);
             }
-
-            
-
-
-
         }).catch(function () {
             console.log("There is some error in resolving name of repository from sentence...");
             document.getElementById("fail_msg").style.display = 'block';
@@ -91,11 +91,11 @@ function callRecastAI(e) {
 
 //Function to create repository
 function createRepositoryOnGithub(repositoryName, commandComment) {
-    fetch(githubCreateRepoAPIurl, {
+    fetch('https://api.github.com/user/repos', {
         method: "POST",
         headers: {
             'Content-Type': 'application/json',
-            'Authorization': 'token 84170a354387ea1c5ad9e5d7793a218d1c547dbf'
+            'Authorization': 'token 4d27ae844092828e33092ff7862c55e34ac5777f'
         },
         body: JSON.stringify({
             "name": repositoryName,
@@ -108,7 +108,6 @@ function createRepositoryOnGithub(repositoryName, commandComment) {
             document.getElementById("success_msg").style.display = 'block';
             document.getElementById("success_msg").innerHTML = successMsg;
             console.log(repoName);
-            //document.getElementById("repository-name").value = repoName;
             document.getElementById("repositoryName").value = repoName;
         }).catch(function () {
             console.log("Github responded successfully but there is some problem in parsing response...");
@@ -124,11 +123,11 @@ function createRepositoryOnGithub(repositoryName, commandComment) {
 
 //Function to create issue
 function createIssueOnGithub(issueRepoName, issueName, issueCommandComment) {
-    fetch(githubCreateIssueAPIurl + issueRepoName + '/issues', {
+    fetch('https://api.github.com/repos/anokha777/' + issueRepoName + '/issues', {
         method: "POST",
         headers: {
             'Content-Type': 'application/json',
-            'Authorization': 'token 84170a354387ea1c5ad9e5d7793a218d1c547dbf'
+            'Authorization': 'token 4d27ae844092828e33092ff7862c55e34ac5777f'
         },
         body: JSON.stringify({
             "title": issueName,
@@ -161,12 +160,11 @@ function createIssueOnGithub(issueRepoName, issueName, issueCommandComment) {
 //Function to list down all issues for a repository
 function displayAllIssues(recastAIresponse) {
     //call github api to fetch all issue for a repository.
-
-    fetch(fetchAllIssues + recastAIresponse.entities.git_repo[0].value + '/issues', {
+    fetch('https://api.github.com/repos/anokha777/' +  recastAIresponse.entities.git_repo[0].value +'/issues?state=all', { 
         method: "GET",
         headers: {
             'Content-Type': 'application/json',
-            'Authorization': 'token 84170a354387ea1c5ad9e5d7793a218d1c547dbf'
+            'Authorization': 'token 4d27ae844092828e33092ff7862c55e34ac5777f'
         }
     }).then((response) => {
         response.json().then((response) => {
@@ -245,11 +243,11 @@ function displayAllIssues(recastAIresponse) {
 
 // Function to add github collaborator
 function addGitCollaborator(gitRepoName, gitCollaboratorUser){
-    fetch(addColleboratorUrl + gitRepoName +  '/collaborators/' + gitCollaboratorUser + '?permission=admin', {
+    fetch('https://api.github.com/repos/anokha777/' + gitRepoName +  '/collaborators/' + gitCollaboratorUser + '?permission=admin', {
         method: "PUT",
         headers: {
             'Content-Type': 'application/json',
-            'Authorization': 'token 84170a354387ea1c5ad9e5d7793a218d1c547dbf'
+            'Authorization': 'token 4d27ae844092828e33092ff7862c55e34ac5777f'
         }}).then((response) => {
         response.json().then(response => {
             var successMsg = 'We have successfully sent a request to '+gitCollaboratorUser+' for collaborator role - '+'admin'+' in your repository - ' + gitRepoName;
@@ -272,11 +270,11 @@ function submitIssueComment(cmtOnIssue){
     var repoName = document.getElementById("repo_name").value;
     var issueNumber = document.querySelector('input[name="issue"]:checked').value;
 
-    fetch(submitIssueCommentUrl + repoName + '/issues/' +issueNumber+ '/comments', {
+    fetch('https://api.github.com/repos/anokha777/' + repoName + '/issues/' +issueNumber+ '/comments', {
         method: "POST",
         headers: {
             'Content-Type': 'application/json',
-            'Authorization': 'token 84170a354387ea1c5ad9e5d7793a218d1c547dbf'
+            'Authorization': 'token 4d27ae844092828e33092ff7862c55e34ac5777f'
         },
         body: JSON.stringify({
             "body": cmtOnIssue
@@ -304,15 +302,13 @@ function showLastComment(){
     var repoName = document.getElementById("repo_name").value;
     var issueNumber = document.querySelector('input[name="issue"]:checked').value;
 
-    fetch(submitIssueCommentUrl + repoName + '/issues/' +issueNumber+ '/comments', {
+    fetch('https://api.github.com/repos/anokha777/' + repoName + '/issues/' +issueNumber+ '/comments', {
         method: "GET",
         headers: {
             'Content-Type': 'application/json',
-            'Authorization': 'token 84170a354387ea1c5ad9e5d7793a218d1c547dbf'
+            'Authorization': 'token 4d27ae844092828e33092ff7862c55e34ac5777f'
         }}).then((response) => {
         response.json().then(response => {
-            //var successMsg = 'Your comment is updated successfully';
-            //document.getElementById("success_msg").style.display = 'block';
             document.getElementById("lastIssueComment").style.display = 'block';
             document.getElementById("lastIssueHeader").innerHTML = 'Below is the last comment for issue at: '+response[response.length -1].created_at;
             
@@ -338,17 +334,16 @@ function showLastComment(){
 function closeIssue(){
     var repoName = document.getElementById("repo_name").value;
     var issueNumber = document.querySelector('input[name="issue"]:checked').value;
-
-    fetch(submitIssueCommentUrl + repoName + '/issues/' +issueNumber+ '/comments', {
+    fetch('https://api.github.com/repos/anokha777/' + repoName + '/issues/' +issueNumber, {
         method: "PATCH",
         headers: {
             'Content-Type': 'application/json',
-            'Authorization': 'token 84170a354387ea1c5ad9e5d7793a218d1c547dbf'
+            'Authorization': 'token 4d27ae844092828e33092ff7862c55e34ac5777f'
         },
         body: JSON.stringify({
-            "title": "Found a bug - closing this issue",
-            "body": "I am closing this bug from api. - closing issue",
-            "assignees": ["anokha777"],
+            // "title": "Found a bug - closing this issue",
+            // "body": "I am closing this bug from api. - closing issue",
+            // "assignees": ["anokha777"],
             "state": "closed",
             "labels": ["closed"]
         })
@@ -357,15 +352,18 @@ function closeIssue(){
             var successMsg = 'Issue number - ' + response.number + " closed successfully, its current status is " + response.state;
             document.getElementById("success_msg").style.display = 'block';
             document.getElementById("success_msg").innerHTML = successMsg;
+            document.getElementById("success_msg").focus();
         }).catch(function () {
             console.log("Github responded successfully but there is some problem in parsing response...");
             document.getElementById("fail_msg").style.display = 'block';
             document.getElementById("fail_msg").innerHTML = 'Github responded successfully but there is some problem in parsing response...';
+            document.getElementById("fail_msg").focus();
         });
     }).catch(function () {
         console.log("There is some error in github api call...");
         document.getElementById("fail_msg").style.display = 'block';
         document.getElementById("fail_msg").innerHTML = 'There is some error in github api call...';
+        document.getElementById("fail_msg").focus();
     });
 
 }
