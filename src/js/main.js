@@ -95,7 +95,7 @@ function createRepositoryOnGithub(repositoryName, commandComment) {
         method: "POST",
         headers: {
             'Content-Type': 'application/json',
-            'Authorization': 'token 4d27ae844092828e33092ff7862c55e34ac5777f'
+            'Authorization': 'token db09b209a9f306263faa8a6a75dd154303276404'
         },
         body: JSON.stringify({
             "name": repositoryName,
@@ -127,7 +127,7 @@ function createIssueOnGithub(issueRepoName, issueName, issueCommandComment) {
         method: "POST",
         headers: {
             'Content-Type': 'application/json',
-            'Authorization': 'token 4d27ae844092828e33092ff7862c55e34ac5777f'
+            'Authorization': 'token db09b209a9f306263faa8a6a75dd154303276404'
         },
         body: JSON.stringify({
             "title": issueName,
@@ -164,7 +164,7 @@ function displayAllIssues(recastAIresponse) {
         method: "GET",
         headers: {
             'Content-Type': 'application/json',
-            'Authorization': 'token 4d27ae844092828e33092ff7862c55e34ac5777f'
+            'Authorization': 'token db09b209a9f306263faa8a6a75dd154303276404'
         }
     }).then((response) => {
         response.json().then((response) => {
@@ -247,21 +247,30 @@ function addGitCollaborator(gitRepoName, gitCollaboratorUser){
         method: "PUT",
         headers: {
             'Content-Type': 'application/json',
-            'Authorization': 'token 4d27ae844092828e33092ff7862c55e34ac5777f'
+            'Authorization': 'token db09b209a9f306263faa8a6a75dd154303276404'
         }}).then((response) => {
-        response.json().then(response => {
-            var successMsg = 'We have successfully sent a request to '+gitCollaboratorUser+' for collaborator role - '+'admin'+' in your repository - ' + gitRepoName;
-            document.getElementById("success_msg").style.display = 'block';
-            document.getElementById("success_msg").innerHTML = successMsg;
+        response.json().then((res) => {
+
+            if(res.message == 'Not Found'){
+                console.log("Github responded successfully but there is some problem in parsing response...");
+                document.getElementById("fail_msg").style.display = 'block';
+                document.getElementById("fail_msg").innerHTML = 'There is no such user called - '+gitCollaboratorUser;
+            }else{
+                var successMsg = 'We have successfully sent a request to '+gitCollaboratorUser+' for collaborator role - '+'admin'+' in your repository - ' + gitRepoName;
+                document.getElementById("success_msg").style.display = 'block';
+                document.getElementById("success_msg").innerHTML = successMsg;
+            }
+
+
         }).catch(function () {
             console.log("Github responded successfully but there is some problem in parsing response...");
             document.getElementById("fail_msg").style.display = 'block';
-            document.getElementById("fail_msg").innerHTML = 'Github responded successfully but there is some problem in parsing response...';
+            document.getElementById("fail_msg").innerHTML = 'There is no such user called - '+gitCollaboratorUser;
         });
     }).catch(function () {
         console.log("There is some error in github api call...");
         document.getElementById("fail_msg").style.display = 'block';
-        document.getElementById("fail_msg").innerHTML = 'There is some error in github api call...';
+        document.getElementById("fail_msg").innerHTML = 'There is no such user called - '+gitCollaboratorUser;
     });
 }
 
@@ -274,7 +283,7 @@ function submitIssueComment(cmtOnIssue){
         method: "POST",
         headers: {
             'Content-Type': 'application/json',
-            'Authorization': 'token 4d27ae844092828e33092ff7862c55e34ac5777f'
+            'Authorization': 'token db09b209a9f306263faa8a6a75dd154303276404'
         },
         body: JSON.stringify({
             "body": cmtOnIssue
@@ -306,7 +315,7 @@ function showLastComment(){
         method: "GET",
         headers: {
             'Content-Type': 'application/json',
-            'Authorization': 'token 4d27ae844092828e33092ff7862c55e34ac5777f'
+            'Authorization': 'token db09b209a9f306263faa8a6a75dd154303276404'
         }}).then((response) => {
         response.json().then(response => {
             document.getElementById("lastIssueComment").style.display = 'block';
@@ -338,7 +347,7 @@ function closeIssue(){
         method: "PATCH",
         headers: {
             'Content-Type': 'application/json',
-            'Authorization': 'token 4d27ae844092828e33092ff7862c55e34ac5777f'
+            'Authorization': 'token db09b209a9f306263faa8a6a75dd154303276404'
         },
         body: JSON.stringify({
             // "title": "Found a bug - closing this issue",
