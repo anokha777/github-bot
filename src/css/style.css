@@ -1,5 +1,6 @@
 .container {
     margin-top: 60px;
+    position: relative;
 }
 
 .lastIssueComment {
@@ -17,4 +18,12 @@
 .commandComment {
     width: 500px;
     height: 100px;
+}
+
+.panBackground {
+    background: wheat;
+}
+
+.panComponents {
+    margin: 30px 70px 30px 70px;
 }

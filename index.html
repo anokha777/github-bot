@@ -16,116 +16,157 @@
     <title>Github bot</title>
 </head>
 
-<body>
+<body onload="showNone()">
     <script src="src/js/jquery-3.3.1.slim.min.js"></script>
     <script src="src/js/popper.min.js"></script>
     <script src="src/js/bootstrap.min.js"></script>
     <!-- <script src="./dist/bundle.js"></script> -->
     <script src="src/js/main.js"></script>
 
-    <!-- Enter Github command:<input type="text" id="gitcmd" value ="" size="300"> -->
+    <div id="loader"></div>
+    <div id="mainBody">
+        <!-- Nvigation bar -->
+        <header class="navigationBar">
+            <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+                <a class="navbar-brand" href="#">Github Bot</a>
+                <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navigationBarId" aria-controls="navigationBarId"
+                    aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
 
-    <div class="container" onload="showNone()">
-        <div class="commandLineInput">
-            <input class="form-control form-control-lg" type="text" id="gitcmd" placeholder="$ Enter Github action and press Enter...">
-        </div>
-
-        <div class="alert alert-success" role="alert" id="success_msg">
-        </div>
-        <div class="alert alert-danger" role="alert" id="fail_msg">
-        </div>
-
-        <!-- Create repository pan -->
-        <div class="createGithubRepo panBackground" id="createGithubRepo">
-            <div>
-                <div class="form-row">
-                    <div class="form-group col-md-12">
-                        <label for="repositoryName">Repository Name: </label>
-                        <input type="text" class="form-control" id="repositoryName" name="repositoryName" value="" />
-                    </div>
+                <div class="collapse navbar-collapse" id="navigationBarId">
+                    <ul class="navbar-nav mr-auto">
+                        <li class="nav-item active">
+                            <a class="nav-link" href="#">Home
+                                <span class="sr-only">(current)</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#">About</a>
+                        </li>
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true"
+                                aria-expanded="false">
+                                Portfolio
+                            </a>
+                            <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+                                <a class="dropdown-item" href="#">Portfolio-1</a>
+                                <a class="dropdown-item" href="#">Portfolio-2</a>
+                                <div class="dropdown-divider"></div>
+                                <a class="dropdown-item" href="#">Other Portfolio</a>
+                            </div>
+                        </li>
+                    </ul>
+                    <form class="form-inline my-2 my-lg-0">
+                        <input class="form-control mr-sm-2" type="search" placeholder="Search" aria-label="Search">
+                        <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Search</button>
+                    </form>
                 </div>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="commandComment">Comment: </label>
-                        <textarea class="form-control commandComment" id="commandComment" name="commandComment"></textarea>
-                    </div>
-                </div>
+            </nav>
+        </header>
 
-                <button type="submit" class="btn btn-primary" onclick="createRepositoryOnGithub(document.getElementById('repositoryName').value, document.getElementById('commandComment').value);">Create Github Repository</button>
-            </div>
-        </div>
-
-        <!-- Create issue pan -->
-        <div class="createGithubIssue panBackground" id="createGithubIssue">
-            <div>
-                <div class="form-row">
-                    <div class="form-group col-md-6">
-                        <label for="issueRepoName">Repository Name: </label>
-                        <input type="text" class="form-control" id="issueRepoName" name="issueRepoName" value="" />
-                    </div>
-                    <div class="form-group col-md-6">
-                        <label for="issueName">Issue Name: </label>
-                        <input type="text" class="form-control" id="issueName" name="issueName" value="" />
-                    </div>
-                </div>
-                <div class="form-row">
-                    <div class="form-group col-md-12">
-                        <label for="issueCommandComment">Comment: </label>
-                        <textarea class="form-control commandComment" id="issueCommandComment" name="issueCommandComment"></textarea>
-                    </div>
-                </div>
-
-                <button type="submit" class="btn btn-primary" onclick="createIssueOnGithub(document.getElementById('issueRepoName').value, document.getElementById('issueName').value, document.getElementById('issueCommandComment').value);">
-                    Create Github Issue</button>
-            </div>
-        </div>
-
-        <!-- Display list of issues -->
-        <div class="displayAllIssues panBackground" id="displayAllIssues">
-            <table class="table table-striped" id="issuesTable">
-                <thead>
-                    <tr>
-                        <th>Select to Comment</th>
-                        <th>Issue No.</th>
-                        <th>Issue Title</th>
-                        <th>Issue Status</th>
-                        <th>Issue Label</th>
-                        <th>Repository URL</th>
-                        <th>Issue URL</th>
-                        <th>Created Time</th>
-                    </tr>
-                </thead>
-                <tbody id="tableBody"></tbody>
-            </table>
-            <div class="form-row">
-                <div class="form-group col-md-12">
-                    <label for="cmtOnIssue">Comment on Issue: </label>
-                    <textarea class="form-control commandComment" id="cmtOnIssue" name="cmtOnIssue"></textarea>
-                </div>
-                <button type="submit" class="btn btn-primary float-left" onclick="submitIssueComment(document.getElementById('cmtOnIssue').value);">
-                    Submit Issue Comment</button>
-                <button type="submit" class="btn btn-success float-right" onclick="showLastComment();">
-                    Show Last Comment of Selected Issue</button>
-                <button type="submit" class="btn btn-warning float-right" onclick="closeIssue();">
-                    Close Selected Issue</button>
+        <div class="container">
+            <div class="commandLineInput">
+                <input class="form-control form-control-lg" type="text" id="gitcmd" placeholder="$ Enter Github action and press Enter...">
             </div>
 
-            <div class="col-sm-12 col-md-12 lastIssueComment" id="lastIssueComment">
-                <div class="alert alert-info">
-                    <button type="button" class="close" data-dismiss="alert" aria-hidden="true">
-                        ×</button>
-                    <span class="glyphicon glyphicon-info-sign"></span>
-                    <strong id="lastIssueHeader"></strong>
-                    <hr class="message-inner-separator">
-                    <p id="actualIssueCmt"></p>
+            <div class="alert alert-success" role="alert" id="success_msg">
+            </div>
+            <div class="alert alert-danger" role="alert" id="fail_msg">
+            </div>
+
+            <!-- Create repository pan -->
+            <div class="createGithubRepo panBackground" id="createGithubRepo">
+                <div class="panComponents">
+                    <div class="form-row">
+                        <div class="form-group col-md-12">
+                            <label for="repositoryName">Repository Name: </label>
+                            <input type="text" class="form-control" id="repositoryName" name="repositoryName" value="" />
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="commandComment">Comment: </label>
+                            <textarea class="form-control commandComment" id="commandComment" name="commandComment"></textarea>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary" onclick="createRepositoryOnGithub(document.getElementById('repositoryName').value, document.getElementById('commandComment').value);">Create Github Repository</button>
                 </div>
             </div>
-            <input type="hidden" id="repo_name" />
+
+            <!-- Create issue pan -->
+            <div class="createGithubIssue panBackground" id="createGithubIssue">
+                <div class="panComponents">
+                    <div class="form-row">
+                        <div class="form-group col-md-6">
+                            <label for="issueRepoName">Repository Name: </label>
+                            <input type="text" class="form-control" id="issueRepoName" name="issueRepoName" value="" />
+                        </div>
+                        <div class="form-group col-md-6">
+                            <label for="issueName">Issue Name: </label>
+                            <input type="text" class="form-control" id="issueName" name="issueName" value="" />
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group col-md-12">
+                            <label for="issueCommandComment">Comment: </label>
+                            <textarea class="form-control commandComment" id="issueCommandComment" name="issueCommandComment"></textarea>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary" onclick="createIssueOnGithub(document.getElementById('issueRepoName').value, document.getElementById('issueName').value, document.getElementById('issueCommandComment').value);">
+                        Create Github Issue</button>
+                </div>
+            </div>
+
+            <!-- Display list of issues -->
+            <div class="displayAllIssues panBackground" id="displayAllIssues">
+                <div class="panComponents">
+                    <table class="table table-striped" id="issuesTable">
+                        <thead>
+                            <tr>
+                                <th>Select to Comment</th>
+                                <th>Issue No.</th>
+                                <th>Issue Title</th>
+                                <th>Issue Status</th>
+                                <th>Issue Label</th>
+                                <th>Repository URL</th>
+                                <th>Issue URL</th>
+                                <th>Created Time</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableBody"></tbody>
+                    </table>
+                    <div class="form-row">
+                        <div class="form-group col-md-12">
+                            <label for="cmtOnIssue">Comment on Issue: </label>
+                            <textarea class="form-control commandComment" id="cmtOnIssue" name="cmtOnIssue"></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary float-left" onclick="submitIssueComment(document.getElementById('cmtOnIssue').value);">
+                            Submit Issue Comment</button>
+                        <button type="submit" class="btn btn-success float-right" onclick="showLastComment();">
+                            Show Last Comment of Selected Issue</button>
+                        <button type="submit" class="btn btn-warning float-right" onclick="javascript:closeIssue();">
+                            Close Selected Issue</button>
+                    </div>
+
+                    <div class="col-sm-12 col-md-12 lastIssueComment" id="lastIssueComment">
+                        <div class="alert alert-info">
+                            <button type="button" class="close" data-dismiss="alert" aria-hidden="true">
+                                ×</button>
+                            <span class="glyphicon glyphicon-info-sign"></span>
+                            <strong id="lastIssueHeader"></strong>
+                            <hr class="message-inner-separator">
+                            <p id="actualIssueCmt"></p>
+                        </div>
+                    </div>
+                    <input type="hidden" id="repo_name" />
+                </div>
+            </div>
 
         </div>
-
     </div>
-
 
 
 

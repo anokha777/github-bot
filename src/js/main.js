@@ -8,7 +8,10 @@
 //var popper = require('popper');
 //var bootstrap = require('bootstrap');
 
-require ('../css/style.css');
+//require ('../css/style.css');
+
+import "../scss/style.scss";
+
 
 var gitCmd = document.getElementById("gitcmd");
 var recastAPIurl = 'https://api.recast.ai/v2/request?text=';
@@ -19,7 +22,15 @@ var addColleboratorUrl = 'https://api.github.com/repos/anokha777/';
 var submitIssueCommentUrl = 'https://api.github.com/repos/anokha777/';
 var repoName = '';
 
+function  showLoader(){
+    document.getElementById('mainBody').style.display = 'none';
+    document.getElementById('loader').style.display = 'block';
+}
 
+function  hideLoader(){
+    document.getElementById('mainBody').style.display = 'block';
+    document.getElementById('loader').style.display = 'none';
+}
 
 gitCmd.addEventListener("keydown", function (e) {
     if (e.keyCode === 13) {  //checks whether the pressed key is "Enter"
@@ -29,24 +40,29 @@ gitCmd.addEventListener("keydown", function (e) {
 
 
 window.onload = function showNone ()  {
-     document.getElementById('gitcmd').focus();
     document.getElementById("success_msg").style.display = 'none';
     document.getElementById("fail_msg").style.display = 'none';
     document.getElementById("lastIssueComment").style.display = 'none';
     document.getElementById("createGithubRepo").style.display = 'none';
     document.getElementById("createGithubIssue").style.display = 'none';
     document.getElementById("displayAllIssues").style.display = 'none';
-    
+    document.getElementById("loader").style.display = "none";
+    document.getElementById("mainBody").style.display = "block";
+    document.getElementById('gitcmd').focus();
 }
 
 // Calling Recast AI to get intent of user
 function callRecastAI(e) {
+
     var text = e.target.value;
     document.getElementById("success_msg").style.display = 'none';
     document.getElementById("fail_msg").style.display = 'none';
     document.getElementById("createGithubRepo").style.display = 'none';
     document.getElementById("createGithubIssue").style.display = 'none';
     document.getElementById("displayAllIssues").style.display = 'none';
+
+    showLoader();
+    
 
     fetch(recastAPIurl + text, {
         method: "post",
@@ -63,12 +79,14 @@ function callRecastAI(e) {
                 document.getElementById("createGithubRepo").style.display = 'block';
                 document.getElementById("repositoryName").value = repoName;
                 document.getElementById("commandComment").focus();
+                hideLoader();
             }// If responce from recast.ai is to create new github issue.
             else if (response.results.intents[0].slug == 'create-git-issue') {
                 document.getElementById("createGithubIssue").style.display = 'block';
                 document.getElementById("issueRepoName").value = response.results.entities.git_repo[0].value;
                 document.getElementById("issueName").value = response.results.entities.git_issue[0].value;
                 document.getElementById("issueCommandComment").focus();
+                hideLoader();
             }// If responce from recast.ai is to fetch all issues for a repository.
             else if (response.results.intents[0].slug == 'fetch-all-git-issue') {
                 displayAllIssues(response.results);
@@ -77,25 +95,29 @@ function callRecastAI(e) {
                 addGitCollaborator(response.results.entities.git_repo[0].value, response.results.entities.git_collaborator[0].value);
             }
         }).catch(function () {
-            console.log("There is some error in resolving name of repository from sentence...");
+            console.log("There is error in resolving name of repository from sentence...");
             document.getElementById("fail_msg").style.display = 'block';
-            document.getElementById("fail_msg").innerHTML = 'There is some error in resolving name of repository from sentence...';
+            document.getElementById("fail_msg").innerHTML = 'There is error in resolving name of repository from sentence...';
+            hideLoader();
         });
     }).catch(function () {
-        console.log("There is some error in recast.ai api call...");
+        console.log("There is error in recast.ai api call...");
         document.getElementById("fail_msg").style.display = 'block';
-        document.getElementById("fail_msg").innerHTML = 'There is some error in recast.ai api call...';
+        document.getElementById("fail_msg").innerHTML = 'There is error in recast.ai api call...';
+        hideLoader();
     });
 
 }
 
 //Function to create repository
-function createRepositoryOnGithub(repositoryName, commandComment) {
+//function createRepositoryOnGithub(repositoryName, commandComment) {
+window.createRepositoryOnGithub = function (repositoryName, commandComment){
+    showLoader();
     fetch('https://api.github.com/user/repos', {
         method: "POST",
         headers: {
             'Content-Type': 'application/json',
-            'Authorization': 'token db09b209a9f306263faa8a6a75dd154303276404'
+            'Authorization': 'token ab3f628ae2a5801ce725553c4309393ccb80974a'
         },
         body: JSON.stringify({
             "name": repositoryName,
@@ -104,30 +126,36 @@ function createRepositoryOnGithub(repositoryName, commandComment) {
     }).then((response) => {
         response.json().then(response => {
             var successMsg = 'Repository with name ';
-            successMsg += repoName + " created and has permission of admin " + response.permissions.admin + " for creater.";
+            successMsg += response.name + " created and has permission of admin " + response.permissions.admin + " for creater.";
             document.getElementById("success_msg").style.display = 'block';
             document.getElementById("success_msg").innerHTML = successMsg;
-            console.log(repoName);
-            document.getElementById("repositoryName").value = repoName;
+            console.log(response.name);
+            document.getElementById("repositoryName").value = response.name;
+            hideLoader();
         }).catch(function () {
-            console.log("Github responded successfully but there is some problem in parsing response...");
+            console.log("Github responded successfully but there is problem in parsing response...");
             document.getElementById("fail_msg").style.display = 'block';
-            document.getElementById("fail_msg").innerHTML = 'Github responded successfully but there is some problem in parsing response...';
+            document.getElementById("fail_msg").innerHTML = 'Github responded successfully but there is problem in parsing response...';
+            hideLoader();
         });
     }).catch(function () {
-        console.log("There is some error in github api call...");
+        console.log("There is error in github api call...");
         document.getElementById("fail_msg").style.display = 'block';
-        document.getElementById("fail_msg").innerHTML = 'There is some error in github api call...';
+        document.getElementById("fail_msg").innerHTML = 'There is error in github api call...';
+        hideLoader();
     });
+    
 }
 
 //Function to create issue
-function createIssueOnGithub(issueRepoName, issueName, issueCommandComment) {
+//function createIssueOnGithub(issueRepoName, issueName, issueCommandComment) {
+window.createIssueOnGithub = function (issueRepoName, issueName, issueCommandComment){
+    showLoader();
     fetch('https://api.github.com/repos/anokha777/' + issueRepoName + '/issues', {
         method: "POST",
         headers: {
             'Content-Type': 'application/json',
-            'Authorization': 'token db09b209a9f306263faa8a6a75dd154303276404'
+            'Authorization': 'token ab3f628ae2a5801ce725553c4309393ccb80974a'
         },
         body: JSON.stringify({
             "title": issueName,
@@ -137,24 +165,34 @@ function createIssueOnGithub(issueRepoName, issueName, issueCommandComment) {
         })
     }).then((response) => {
         response.json().then(response => {
-            var successMsg = 'Issue created with issue number - ' + response.number + " and its current status is " + response.state;
-            document.getElementById("success_msg").style.display = 'block';
-            document.getElementById("success_msg").innerHTML = successMsg;
+            if(response.message !='Not Found'){
+                var successMsg = 'Issue created with issue number - ' + response.number + " and its current status is " + response.state;
+                document.getElementById("success_msg").style.display = 'block';
+                document.getElementById("success_msg").innerHTML = successMsg;
+            }else{
+                var successMsg = 'There are no such reposiroty with name - ' + issueRepoName + ' in your git account. Please try with valid repository name.';
+                document.getElementById("fail_msg").style.display = 'block';
+                document.getElementById("fail_msg").innerHTML = successMsg;               
+            }
 
             document.getElementById("issueRepoName").value = issueRepoName;
             document.getElementById("issueName").value = issueName;
             document.getElementById("issueCommandComment").value = issueCommandComment;
-
+            
+            hideLoader();
         }).catch(function () {
-            console.log("Github responded successfully but there is some problem in parsing response...");
+            console.log("Github responded successfully but there is problem in parsing response...");
             document.getElementById("fail_msg").style.display = 'block';
-            document.getElementById("fail_msg").innerHTML = 'Github responded successfully but there is some problem in parsing response...';
+            document.getElementById("fail_msg").innerHTML = 'Github responded successfully but there is problem in parsing response...';
+            hideLoader();
         });
     }).catch(function () {
-        console.log("There is some error in github api call...");
+        console.log("There is error in github api call...");
         document.getElementById("fail_msg").style.display = 'block';
-        document.getElementById("fail_msg").innerHTML = 'There is some error in github api call...';
+        document.getElementById("fail_msg").innerHTML = 'There is error in github api call...';
+        hideLoader();
     });
+    
 }
 
 //Function to list down all issues for a repository
@@ -164,7 +202,7 @@ function displayAllIssues(recastAIresponse) {
         method: "GET",
         headers: {
             'Content-Type': 'application/json',
-            'Authorization': 'token db09b209a9f306263faa8a6a75dd154303276404'
+            'Authorization': 'token ab3f628ae2a5801ce725553c4309393ccb80974a'
         }
     }).then((response) => {
         response.json().then((response) => {
@@ -228,16 +266,19 @@ function displayAllIssues(recastAIresponse) {
                 tableBody.appendChild(tr);
             }
             //document.table.appendChild(tableBody);
+            hideLoader();
 
         }).catch(function () {
-            console.log("Github responded successfully but there is some problem in parsing response...");
+            console.log("Github responded successfully but there is problem in parsing response...");
             document.getElementById("fail_msg").style.display = 'block';
-            document.getElementById("fail_msg").innerHTML = 'Github responded successfully but there is some problem in parsing response...';
+            document.getElementById("fail_msg").innerHTML = 'Github responded successfully but there is problem in parsing response...';
+            hideLoader();
         });
     }).catch(function () {
-        console.log("There is some error in github api call...");
+        console.log("There is error in github api call...");
         document.getElementById("fail_msg").style.display = 'block';
-        document.getElementById("fail_msg").innerHTML = 'There is some error in github api call...';
+        document.getElementById("fail_msg").innerHTML = 'There is error in github api call...';
+        hideLoader();
     });
 }
 
@@ -247,43 +288,50 @@ function addGitCollaborator(gitRepoName, gitCollaboratorUser){
         method: "PUT",
         headers: {
             'Content-Type': 'application/json',
-            'Authorization': 'token db09b209a9f306263faa8a6a75dd154303276404'
+            'Authorization': 'token ab3f628ae2a5801ce725553c4309393ccb80974a'
         }}).then((response) => {
         response.json().then((res) => {
 
             if(res.message == 'Not Found'){
-                console.log("Github responded successfully but there is some problem in parsing response...");
+                console.log("Github responded successfully but there is problem in parsing response...");
                 document.getElementById("fail_msg").style.display = 'block';
-                document.getElementById("fail_msg").innerHTML = 'There is no such user called - '+gitCollaboratorUser;
+                document.getElementById("fail_msg").innerHTML = 'Either Github user name - '+gitCollaboratorUser + ' or Repository name - '+gitRepoName + ' is not available. Please check either of these.';
             }else{
                 var successMsg = 'We have successfully sent a request to '+gitCollaboratorUser+' for collaborator role - '+'admin'+' in your repository - ' + gitRepoName;
                 document.getElementById("success_msg").style.display = 'block';
                 document.getElementById("success_msg").innerHTML = successMsg;
             }
-
+            hideLoader();
 
         }).catch(function () {
-            console.log("Github responded successfully but there is some problem in parsing response...");
+            console.log("Github responded successfully but there is problem in parsing response...");
             document.getElementById("fail_msg").style.display = 'block';
             document.getElementById("fail_msg").innerHTML = 'There is no such user called - '+gitCollaboratorUser;
+            hideLoader();
         });
     }).catch(function () {
-        console.log("There is some error in github api call...");
+        console.log("There is error in github api call...");
         document.getElementById("fail_msg").style.display = 'block';
         document.getElementById("fail_msg").innerHTML = 'There is no such user called - '+gitCollaboratorUser;
+        hideLoader();
     });
 }
 
 //Function to add comment for an issue.
-function submitIssueComment(cmtOnIssue){
+//function submitIssueComment(cmtOnIssue){
+window.submitIssueComment = function (cmtOnIssue){
+    showLoader();
     var repoName = document.getElementById("repo_name").value;
     var issueNumber = document.querySelector('input[name="issue"]:checked').value;
+    document.getElementById("lastIssueComment").style.display = 'none';
+    document.getElementById("success_msg").style.display = 'none';
+    document.getElementById("fail_msg").style.display = 'none';
 
     fetch('https://api.github.com/repos/anokha777/' + repoName + '/issues/' +issueNumber+ '/comments', {
         method: "POST",
         headers: {
             'Content-Type': 'application/json',
-            'Authorization': 'token db09b209a9f306263faa8a6a75dd154303276404'
+            'Authorization': 'token ab3f628ae2a5801ce725553c4309393ccb80974a'
         },
         body: JSON.stringify({
             "body": cmtOnIssue
@@ -293,86 +341,146 @@ function submitIssueComment(cmtOnIssue){
             var successMsg = 'Your comment is updated successfully';
             document.getElementById("success_msg").style.display = 'block';
             document.getElementById("success_msg").innerHTML = successMsg;
-
+            hideLoader();
         }).catch(function () {
-            console.log("Github responded successfully but there is some problem in parsing response...");
+            console.log("Github responded successfully but there is problem in parsing response...");
             document.getElementById("fail_msg").style.display = 'block';
-            document.getElementById("fail_msg").innerHTML = 'Github responded successfully but there is some problem in parsing response...';
+            document.getElementById("fail_msg").innerHTML = 'Github responded successfully but there is problem in parsing response...';
+            hideLoader();
         });
     }).catch(function () {
-        console.log("There is some error in github api call...");
+        console.log("There is error in github api call...");
         document.getElementById("fail_msg").style.display = 'block';
-        document.getElementById("fail_msg").innerHTML = 'There is some error in github api call...';
+        document.getElementById("fail_msg").innerHTML = 'There is error in github api call...';
+        hideLoader();
     });
+    
 }
 
 //Function to show last comment for an issue.
-function showLastComment(){
+window.showLastComment = function (){
+    showLoader();
     var repoName = document.getElementById("repo_name").value;
     var issueNumber = document.querySelector('input[name="issue"]:checked').value;
-
+    document.getElementById("lastIssueComment").style.display = 'none';
+    document.getElementById("success_msg").style.display = 'none';
+    document.getElementById("fail_msg").style.display = 'none';
+console.log('Function to show last comment for an issue------ '+repoName +' - '+issueNumber);
     fetch('https://api.github.com/repos/anokha777/' + repoName + '/issues/' +issueNumber+ '/comments', {
         method: "GET",
         headers: {
             'Content-Type': 'application/json',
-            'Authorization': 'token db09b209a9f306263faa8a6a75dd154303276404'
+            'Authorization': 'token ab3f628ae2a5801ce725553c4309393ccb80974a'
         }}).then((response) => {
         response.json().then(response => {
-            document.getElementById("lastIssueComment").style.display = 'block';
-            document.getElementById("lastIssueHeader").innerHTML = 'Below is the last comment for issue at: '+response[response.length -1].created_at;
-            
-            var commentTag = document.createElement('a');
-            commentTag.setAttribute('href',response[response.length -1].html_url);
-            commentTag.setAttribute('target',"_blank");
-            commentTag.innerHTML = response[response.length -1].body;
-            document.getElementById("actualIssueCmt").appendChild(commentTag);     
-            
+            if(response.length > 0){
+                document.getElementById("lastIssueComment").style.display = 'none';
+                document.getElementById("lastIssueComment").style.display = '';
+                document.getElementById("lastIssueHeader").innerHTML = '';
+                document.getElementById("lastIssueComment").style.display = 'block';
+                // document.getElementById("lastIssueHeader").innerHTML ='';
+                document.getElementById("lastIssueHeader").innerHTML = 'Below is the last comment for issue at: '+response[response.length -1].created_at;
+                
+                var commentTag = document.createElement('a');
+                commentTag.setAttribute('href',response[response.length -1].html_url);
+                commentTag.setAttribute('target',"_blank");
+                commentTag.innerHTML = response[response.length -1].body;
+                document.getElementById("actualIssueCmt").appendChild(commentTag);     
+                //commentTag = null;
+            }else{
+                document.getElementById("lastIssueComment").style.display = 'none';
+                document.getElementById("fail_msg").style.display = 'none';
+                document.getElementById("success_msg").style.display = 'block';
+                document.getElementById("success_msg").innerHTML = 'As of now, There is no comment for issue number - '+issueNumber;
+            }
+            hideLoader();
         }).catch(function () {
-            console.log("There is some problem while fetching issue comment...");
+            console.log("There is problem while fetching issue comment...");
             document.getElementById("fail_msg").style.display = 'block';
-            document.getElementById("fail_msg").innerHTML = 'Github responded successfully but there is some problem in parsing response...';
+            document.getElementById("fail_msg").innerHTML = 'Github responded successfully but there is problem in parsing response...';
+            hideLoader();
         });
     }).catch(function () {
-        console.log("There is some error in github api call...");
+        console.log("There is error in github api call...");
         document.getElementById("fail_msg").style.display = 'block';
-        document.getElementById("fail_msg").innerHTML = 'There is some error in github api call...';
+        document.getElementById("fail_msg").innerHTML = 'There is error in github api call...';
+        hideLoader();
     });
+    
 }
 
 //Function to close issue
-function closeIssue(){
+window.closeIssue = function (){
+    showLoader();
     var repoName = document.getElementById("repo_name").value;
     var issueNumber = document.querySelector('input[name="issue"]:checked').value;
+    document.getElementById("lastIssueComment").style.display = 'none';
+    document.getElementById("success_msg").style.display = 'none';
+    document.getElementById("fail_msg").style.display = 'none';
+
     fetch('https://api.github.com/repos/anokha777/' + repoName + '/issues/' +issueNumber, {
-        method: "PATCH",
+        method: "GET",
         headers: {
             'Content-Type': 'application/json',
-            'Authorization': 'token db09b209a9f306263faa8a6a75dd154303276404'
-        },
-        body: JSON.stringify({
-            // "title": "Found a bug - closing this issue",
-            // "body": "I am closing this bug from api. - closing issue",
-            // "assignees": ["anokha777"],
-            "state": "closed",
-            "labels": ["closed"]
-        })
-    }).then((response) => {
+            'Authorization': 'token ab3f628ae2a5801ce725553c4309393ccb80974a'
+        }}).then((response) => {
         response.json().then(response => {
-            var successMsg = 'Issue number - ' + response.number + " closed successfully, its current status is " + response.state;
-            document.getElementById("success_msg").style.display = 'block';
-            document.getElementById("success_msg").innerHTML = successMsg;
-            document.getElementById("success_msg").focus();
+            console.log('While closing an issue - '+response.state);
+            if(response.state === 'closed'){
+                var successMsg = 'Issue number - (' + response.number + '. ' + response.title +') is alredy closed.';
+                document.getElementById("success_msg").style.display = 'block';
+                document.getElementById("success_msg").innerHTML = successMsg;
+                document.getElementById("success_msg").focus();
+                hideLoader();
+            }else{
+                fetch('https://api.github.com/repos/anokha777/' + repoName + '/issues/' +issueNumber, {
+                    method: "PATCH",
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'token ab3f628ae2a5801ce725553c4309393ccb80974a'
+                    },
+                    body: JSON.stringify({
+                        "state": "closed",
+                        "labels": ["closed"]
+                    })
+                }).then((response) => {
+                    response.json().then(response => {
+                        var successMsg = 'Issue number - ' + response.number + " closed successfully, its current status is " + response.state;
+                        document.getElementById("success_msg").style.display = 'block';
+                        document.getElementById("success_msg").innerHTML = successMsg;
+                        document.getElementById("success_msg").focus();
+                        hideLoader();
+                    }).catch(function () {
+                        console.log("Github responded successfully but there is problem in parsing response...");
+                        document.getElementById("fail_msg").style.display = 'block';
+                        document.getElementById("fail_msg").innerHTML = 'Github responded successfully but there is problem in parsing response...';
+                        document.getElementById("fail_msg").focus();
+                        hideLoader();
+                    });
+                    hideLoader();
+                }).catch(function () {
+                    console.log("There is error in github api call...");
+                    document.getElementById("fail_msg").style.display = 'block';
+                    document.getElementById("fail_msg").innerHTML = 'There is error in github api call...';
+                    document.getElementById("fail_msg").focus();
+                    hideLoader();
+                });
+            }
         }).catch(function () {
-            console.log("Github responded successfully but there is some problem in parsing response...");
+            console.log("Github responded successfully but there is problem in parsing response after getting status of issue...");
             document.getElementById("fail_msg").style.display = 'block';
-            document.getElementById("fail_msg").innerHTML = 'Github responded successfully but there is some problem in parsing response...';
+            document.getElementById("fail_msg").innerHTML = 'Github responded successfully but there is problem in parsing response...';
             document.getElementById("fail_msg").focus();
+            hideLoader();
         });
     }).catch(function () {
-        console.log("There is some error in github api call...");
+        console.log("There is error in github api call for getting status of issue...");
         document.getElementById("fail_msg").style.display = 'block';
-        document.getElementById("fail_msg").innerHTML = 'There is some error in github api call...';
+        document.getElementById("fail_msg").innerHTML = 'There is error in github api call...';
         document.getElementById("fail_msg").focus();
+        hideLoader();
     });
 
+    
 }
+
