@@ -1,9 +1,9 @@
 // import './jquery-3.3.1.slim.min.js';
 // import './popper.min.js';
 
-// import 'jquery';
-// import 'popper';
-// import 'bootstrap';
+import 'jquery';
+import 'popper.js';
+import 'bootstrap';
 //var jquery = require('jquery');
 //var popper = require('popper');
 //var bootstrap = require('bootstrap');
@@ -42,6 +42,7 @@ gitCmd.addEventListener("keydown", function (e) {
 window.onload = function showNone ()  {
     document.getElementById("success_msg").style.display = 'none';
     document.getElementById("fail_msg").style.display = 'none';
+    document.getElementById("lastIssueComment").style.display = 'none';
     document.getElementById("lastIssueComment").style.display = 'none';
     document.getElementById("createGithubRepo").style.display = 'none';
     document.getElementById("createGithubIssue").style.display = 'none';
@@ -117,7 +118,7 @@ window.createRepositoryOnGithub = function (repositoryName, commandComment){
         method: "POST",
         headers: {
             'Content-Type': 'application/json',
-            'Authorization': 'token ab3f628ae2a5801ce725553c4309393ccb80974a'
+            'Authorization': 'token 8bcba7d316a9b1a2a7090d689b4aec41bf32153f'
         },
         body: JSON.stringify({
             "name": repositoryName,
@@ -155,7 +156,7 @@ window.createIssueOnGithub = function (issueRepoName, issueName, issueCommandCom
         method: "POST",
         headers: {
             'Content-Type': 'application/json',
-            'Authorization': 'token ab3f628ae2a5801ce725553c4309393ccb80974a'
+            'Authorization': 'token 8bcba7d316a9b1a2a7090d689b4aec41bf32153f'
         },
         body: JSON.stringify({
             "title": issueName,
@@ -202,7 +203,7 @@ function displayAllIssues(recastAIresponse) {
         method: "GET",
         headers: {
             'Content-Type': 'application/json',
-            'Authorization': 'token ab3f628ae2a5801ce725553c4309393ccb80974a'
+            'Authorization': 'token 8bcba7d316a9b1a2a7090d689b4aec41bf32153f'
         }
     }).then((response) => {
         response.json().then((response) => {
@@ -210,6 +211,13 @@ function displayAllIssues(recastAIresponse) {
             document.getElementById("success_msg").style.display = 'block';
             document.getElementById("success_msg").innerHTML = successMsg;
             document.getElementById("repo_name").value = recastAIresponse.entities.git_repo[0].value;
+
+            //to remove old issue list value from DOM                
+            var oldDOMIssuesList = document.getElementById('tableBody');
+            while(oldDOMIssuesList.firstChild){
+                oldDOMIssuesList.removeChild(oldDOMIssuesList.firstChild);
+            }
+
             //display all issues
             document.getElementById("displayAllIssues").style.display = 'block';
             var tableBody = document.getElementById('tableBody');
@@ -288,7 +296,7 @@ function addGitCollaborator(gitRepoName, gitCollaboratorUser){
         method: "PUT",
         headers: {
             'Content-Type': 'application/json',
-            'Authorization': 'token ab3f628ae2a5801ce725553c4309393ccb80974a'
+            'Authorization': 'token 8bcba7d316a9b1a2a7090d689b4aec41bf32153f'
         }}).then((response) => {
         response.json().then((res) => {
 
@@ -331,7 +339,7 @@ window.submitIssueComment = function (cmtOnIssue){
         method: "POST",
         headers: {
             'Content-Type': 'application/json',
-            'Authorization': 'token ab3f628ae2a5801ce725553c4309393ccb80974a'
+            'Authorization': 'token 8bcba7d316a9b1a2a7090d689b4aec41bf32153f'
         },
         body: JSON.stringify({
             "body": cmtOnIssue
@@ -370,22 +378,28 @@ console.log('Function to show last comment for an issue------ '+repoName +' - '+
         method: "GET",
         headers: {
             'Content-Type': 'application/json',
-            'Authorization': 'token ab3f628ae2a5801ce725553c4309393ccb80974a'
+            'Authorization': 'token 8bcba7d316a9b1a2a7090d689b4aec41bf32153f'
         }}).then((response) => {
         response.json().then(response => {
             if(response.length > 0){
-                document.getElementById("lastIssueComment").style.display = 'none';
-                document.getElementById("lastIssueComment").style.display = '';
-                document.getElementById("lastIssueHeader").innerHTML = '';
+                // document.getElementById("lastIssueComment").style.display = 'none';
+                // document.getElementById("lastIssueComment").style.display = '';
+                // document.getElementById("lastIssueHeader").innerHTML = '';
                 document.getElementById("lastIssueComment").style.display = 'block';
                 // document.getElementById("lastIssueHeader").innerHTML ='';
                 document.getElementById("lastIssueHeader").innerHTML = 'Below is the last comment for issue at: '+response[response.length -1].created_at;
-                
+                //to remove old comment value from DOM                
+                var div1 = document.getElementById('actualIssueCmt');
+                while(div1.firstChild){
+                    div1.removeChild(div1.firstChild);
+                }
+
                 var commentTag = document.createElement('a');
                 commentTag.setAttribute('href',response[response.length -1].html_url);
                 commentTag.setAttribute('target',"_blank");
                 commentTag.innerHTML = response[response.length -1].body;
-                document.getElementById("actualIssueCmt").appendChild(commentTag);     
+                document.getElementById("actualIssueCmt").appendChild(commentTag); 
+                  
                 //commentTag = null;
             }else{
                 document.getElementById("lastIssueComment").style.display = 'none';
@@ -422,7 +436,7 @@ window.closeIssue = function (){
         method: "GET",
         headers: {
             'Content-Type': 'application/json',
-            'Authorization': 'token ab3f628ae2a5801ce725553c4309393ccb80974a'
+            'Authorization': 'token 8bcba7d316a9b1a2a7090d689b4aec41bf32153f'
         }}).then((response) => {
         response.json().then(response => {
             console.log('While closing an issue - '+response.state);
@@ -437,7 +451,7 @@ window.closeIssue = function (){
                     method: "PATCH",
                     headers: {
                         'Content-Type': 'application/json',
-                        'Authorization': 'token ab3f628ae2a5801ce725553c4309393ccb80974a'
+                        'Authorization': 'token 8bcba7d316a9b1a2a7090d689b4aec41bf32153f'
                     },
                     body: JSON.stringify({
                         "state": "closed",
